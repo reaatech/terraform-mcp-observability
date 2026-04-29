@@ -8,10 +8,12 @@ locals {
   tags = merge(local.default_tags, var.tags)
 }
 
-data "aws_region" "current" {}
+data "aws_region" "current" {
+  count = var.region == "" ? 1 : 0
+}
 
 locals {
-  aws_region = var.region != "" ? var.region : data.aws_region.current.id
+  aws_region = var.region != "" ? var.region : one(data.aws_region.current[*].id)
 }
 
 # ---------------------------------------------------------------------------
