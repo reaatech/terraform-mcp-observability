@@ -26,8 +26,9 @@ function run(
   }
 }
 
-// Skip integration tests when Docker is not available
-const DOCKER_AVAILABLE = run("docker info", ROOT).success;
+// Skip integration tests in CI or when Docker is not available
+const isCI = process.env.CI === "true";
+const DOCKER_AVAILABLE = !isCI && run("docker info", ROOT).success;
 
 describe.runIf(DOCKER_AVAILABLE)("integration: standalone", () => {
   beforeAll(() => {
