@@ -75,7 +75,7 @@ module "grafana" {
   amp_workspace_endpoint = module.prometheus.prometheus_endpoint
   amp_region             = local.aws_region
   region                 = local.aws_region
-  dashboard_files        = fileset("${path.module}/src/dashboards", "*.json")
+  dashboard_files        = var.enable_metrics ? fileset("${path.module}/src/dashboards", "*.json") : []
   create_irsa_role       = var.create_irsa_role
   irsa_role_arn          = module.prometheus.query_role_arn
   tags                   = local.tags
