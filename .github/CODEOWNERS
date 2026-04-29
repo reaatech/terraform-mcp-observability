@@ -1,0 +1,6 @@
+# Maintainers — replace with actual usernames before public release
+* @reaatech/platform
+
+# For community contributions, file-level owners can be set as:
+# /src/modules/ @terraform-maintainers
+# /src/lib/    @typescript-maintainers
