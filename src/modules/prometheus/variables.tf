@@ -53,14 +53,9 @@ variable "create_irsa_role" {
 }
 
 variable "oidc_provider_arn" {
-  description = "ARN of the OIDC provider for IRSA"
+  description = "ARN of the OIDC provider for IRSA. Required when create_irsa_role is true."
   type        = string
   default     = ""
-
-  validation {
-    condition     = var.create_irsa_role ? var.oidc_provider_arn != "" : true
-    error_message = "oidc_provider_arn is required when create_irsa_role is true."
-  }
 }
 
 variable "irsa_service_account_subjects" {

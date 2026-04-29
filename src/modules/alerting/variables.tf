@@ -53,14 +53,9 @@ variable "sns_sms_endpoints" {
 }
 
 variable "pagerduty_routing_key" {
-  description = "DEPRECATED: PagerDuty routing key for critical alerts (plaintext). Use pagerduty_secret_name instead."
+  description = "DEPRECATED: PagerDuty routing key for critical alerts (plaintext). Use pagerduty_secret_name instead. Do not set both."
   type        = string
   default     = ""
-
-  validation {
-    condition     = var.pagerduty_routing_key == "" || var.pagerduty_secret_name == ""
-    error_message = "Cannot set both pagerduty_routing_key and pagerduty_secret_name. Use pagerduty_secret_name (recommended) or pagerduty_routing_key."
-  }
 }
 
 variable "pagerduty_secret_name" {
@@ -70,14 +65,9 @@ variable "pagerduty_secret_name" {
 }
 
 variable "slack_webhook_url" {
-  description = "DEPRECATED: Slack webhook URL for alert notifications (plaintext). Use slack_secret_name instead."
+  description = "DEPRECATED: Slack webhook URL for alert notifications (plaintext). Use slack_secret_name instead. Do not set both."
   type        = string
   default     = ""
-
-  validation {
-    condition     = var.slack_webhook_url == "" || var.slack_secret_name == ""
-    error_message = "Cannot set both slack_webhook_url and slack_secret_name. Use slack_secret_name (recommended) or slack_webhook_url."
-  }
 }
 
 variable "slack_secret_name" {
