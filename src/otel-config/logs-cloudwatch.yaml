@@ -1,0 +1,65 @@
+# Standalone reference config — not consumed by Terraform.
+# Use this as a starting point for CloudWatch Logs export configuration.
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 512
+    spike_limit_mib: 128
+  batch:
+    timeout: 1s
+    send_batch_size: 1024
+  resource:
+    attributes:
+      - key: environment
+        value: ${ENV}
+        action: upsert
+      - key: cluster
+        value: ${CLUSTER_NAME}
+        action: upsert
+      - key: service.namespace
+        value: mcp-observability
+        action: upsert
+  attributes/logs:
+    actions:
+      - key: cloudwatch.log_group
+        value: ${LOG_GROUP_NAME:-/mcp/observability}
+        action: upsert
+
+exporters:
+  awscloudwatchlogs:
+    log_group_name: ${LOG_GROUP_NAME:-/mcp/observability}
+    log_stream_name: ${LOG_STREAM_NAME:-otel-collector}
+    region: ${AWS_REGION:-us-east-1}
+    sending_queue:
+      enabled: true
+      num_consumers: 10
+      queue_size: 5000
+    retry_on_failure:
+      enabled: true
+      initial_interval: 5s
+      max_interval: 30s
+      max_elapsed_time: 300s
+
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+  pprof:
+    endpoint: 0.0.0.0:1777
+  prometheus:
+    endpoint: 0.0.0.0:8888
+
+service:
+  extensions: [health_check, pprof, prometheus]
+  pipelines:
+    logs:
+      receivers: [otlp]
+      processors: [memory_limiter, batch, resource, attributes/logs]
+      exporters: [awscloudwatchlogs]

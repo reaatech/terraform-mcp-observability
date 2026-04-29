@@ -1,0 +1,73 @@
+# Standalone reference config — not consumed by Terraform.
+# Use this as a starting point for Langfuse trace export.
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+
+processors:
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 512
+    spike_limit_mib: 128
+  batch:
+    timeout: 1s
+    send_batch_size: 1024
+  resource:
+    attributes:
+      - key: environment
+        value: ${ENV}
+        action: upsert
+      - key: cluster
+        value: ${CLUSTER_NAME}
+        action: upsert
+      - key: service.namespace
+        value: mcp-observability
+        action: upsert
+  filter/llm-only:
+    spans:
+      include:
+        match_type: strict
+        attributes:
+          - key: gen_ai.operation.name
+            value: chat
+          - key: gen_ai.operation.name
+            value: embeddings
+          - key: gen_ai.operation.name
+            value: text_completion
+
+exporters:
+  otlphttp/langfuse:
+    endpoint: ${LANGFUSE_OTLP_ENDPOINT:-http://langfuse.observability:8080/api/public/otel}
+    headers:
+      Authorization: ${LANGFUSE_API_KEY}
+      X-Langfuse-Host: ${LANGFUSE_HOST:-http://langfuse.observability:3000}
+    compression: gzip
+    sending_queue:
+      enabled: true
+      num_consumers: 10
+      queue_size: 5000
+    retry_on_failure:
+      enabled: true
+      initial_interval: 5s
+      max_interval: 30s
+      max_elapsed_time: 300s
+
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+  pprof:
+    endpoint: 0.0.0.0:1777
+  prometheus:
+    endpoint: 0.0.0.0:8888
+
+service:
+  extensions: [health_check, pprof, prometheus]
+  pipelines:
+    traces/llm:
+      receivers: [otlp]
+      processors: [memory_limiter, filter/llm-only, batch, resource]
+      exporters: [otlphttp/langfuse]

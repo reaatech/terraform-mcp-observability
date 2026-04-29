@@ -1,0 +1,77 @@
+# Standalone reference config — not consumed by Terraform.
+# Use this as a starting point for local development with docker-compose.
+receivers:
+  otlp:
+    protocols:
+      grpc:
+        endpoint: 0.0.0.0:4317
+      http:
+        endpoint: 0.0.0.0:4318
+  prometheus:
+    config:
+      scrape_configs:
+        - job_name: otel-collector-self
+          scrape_interval: 30s
+          static_configs:
+            - targets: [localhost:8888]
+  hostmetrics:
+    collection_interval: 30s
+    scrapers:
+      cpu: {}
+      memory: {}
+      disk: {}
+      load: {}
+
+processors:
+  memory_limiter:
+    check_interval: 1s
+    limit_mib: 512
+    spike_limit_mib: 128
+  batch:
+    timeout: 1s
+    send_batch_size: 1024
+  resource:
+    attributes:
+      - key: environment
+        value: local
+        action: upsert
+      - key: cluster
+        value: docker-compose
+        action: upsert
+      - key: service.namespace
+        value: mcp-observability
+        action: upsert
+  attributes/project:
+    actions:
+      - key: openinference.project.name
+        value: mcp-local
+        action: upsert
+
+exporters:
+  otlphttp/phoenix:
+    endpoint: http://phoenix:6006/v1/traces
+    compression: gzip
+  prometheusremotewrite:
+    endpoint: http://prometheus:9090/api/v1/write
+    resource_to_telemetry_conversion:
+      enabled: true
+
+extensions:
+  health_check:
+    endpoint: 0.0.0.0:13133
+  pprof:
+    endpoint: 0.0.0.0:1777
+  prometheus:
+    endpoint: 0.0.0.0:8888
+
+service:
+  extensions: [health_check, pprof, prometheus]
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [memory_limiter, batch, resource, attributes/project]
+      exporters: [otlphttp/phoenix]
+    metrics:
+      receivers: [otlp, prometheus, hostmetrics]
+      processors: [memory_limiter, batch, resource]
+      exporters: [prometheusremotewrite]
