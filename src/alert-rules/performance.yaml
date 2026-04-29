@@ -1,0 +1,31 @@
+groups:
+  - name: mcp-observability-performance
+    interval: 30s
+    rules:
+      - alert: HighLatencyP95
+        expr: |
+          histogram_quantile(0.95,
+            sum(rate(gen_ai_client_operation_duration_bucket[5m])) by (le, gen_ai_request_model)
+          ) > 5000
+        for: 5m
+        labels:
+          severity: warning
+          category: performance
+        annotations:
+          summary: "High p95 latency for {{ $labels.gen_ai_request_model }}"
+          description: "The p95 latency for model {{ $labels.gen_ai_request_model }} has exceeded 5s for more than 5 minutes."
+
+      - alert: LatencySpike
+        expr: |
+          (
+            histogram_quantile(0.95, sum(rate(gen_ai_client_operation_duration_bucket[5m])) by (le))
+            /
+            histogram_quantile(0.95, sum(rate(gen_ai_client_operation_duration_bucket[1h])) by (le))
+          ) > 2
+        for: 2m
+        labels:
+          severity: high
+          category: performance
+        annotations:
+          summary: "Latency spike detected"
+          description: "The p95 latency has spiked to more than 2x the 1-hour baseline."

@@ -1,0 +1,26 @@
+groups:
+  - name: mcp-observability-availability
+    interval: 30s
+    rules:
+      - alert: OTelCollectorDown
+        expr: up{job="otel-collector"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          category: availability
+        annotations:
+          summary: "OTel Collector is down"
+          description: "The OpenTelemetry Collector has been down for more than 1 minute."
+
+      - alert: HighErrorRate
+        expr: |
+          sum(rate(gen_ai_client_operation_duration_count{status="error"}[5m]))
+          /
+          sum(rate(gen_ai_client_operation_duration_count[5m])) > 0.05
+        for: 5m
+        labels:
+          severity: high
+          category: availability
+        annotations:
+          summary: "High error rate detected"
+          description: "The error rate has exceeded 5% for more than 5 minutes."

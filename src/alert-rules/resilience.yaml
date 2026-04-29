@@ -1,0 +1,51 @@
+groups:
+  - name: mcp-observability-resilience
+    interval: 30s
+    rules:
+      - alert: CircuitBreakerOpen
+        expr: |
+          mcp_circuit_breaker_state == 1
+        for: 1m
+        labels:
+          severity: critical
+          category: resilience
+        annotations:
+          summary: "Circuit breaker open for {{ $labels.mcp_server_name }}"
+          description: "The circuit breaker for MCP server {{ $labels.mcp_server_name }} has been open for more than 1 minute."
+
+      - alert: HighQueueDepth
+        expr: |
+          (
+            otelcol_exporter_queue_size{exporter=~"otlphttp/.+|prometheusremotewrite"}
+            /
+            otelcol_exporter_queue_capacity{exporter=~"otlphttp/.+|prometheusremotewrite"}
+          ) > 0.90
+        for: 5m
+        labels:
+          severity: high
+          category: resilience
+        annotations:
+          summary: "Exporter queue at {{ $value | humanizePercentage }} for {{ $labels.exporter }}"
+          description: "The OTel Collector exporter {{ $labels.exporter }} queue is at {{ $value | humanizePercentage }} capacity."
+
+      - alert: CollectorDroppingData
+        expr: |
+          rate(otelcol_exporter_send_failed_spans[5m]) > 0
+        for: 5m
+        labels:
+          severity: high
+          category: resilience
+        annotations:
+          summary: "OTel Collector is dropping spans"
+          description: "The OTel Collector is failing to export spans at a rate of {{ $value | humanize }}/sec."
+
+      - alert: CollectorProcessorFailures
+        expr: |
+          rate(otelcol_processor_dropped_spans[5m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+          category: resilience
+        annotations:
+          summary: "OTel Collector processor is dropping spans"
+          description: "The OTel Collector processor is dropping spans at a rate of {{ $value | humanize }}/sec."

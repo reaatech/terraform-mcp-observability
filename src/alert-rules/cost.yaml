@@ -1,0 +1,63 @@
+# ---------------------------------------------------------------------------
+# COST ALERTING — PRICING ASSUMPTIONS
+#
+# The rules below use hardcoded per-token costs:
+#   - Input tokens:  $0.000003 ($3 per 1M tokens)
+#   - Output tokens: $0.000015 ($15 per 1M tokens)
+#
+# These approximate GPT-3.5-Turbo pricing. For other models, adjust the
+# multipliers in the expr fields. For dynamic per-model pricing, emit a
+# recording rule (e.g. gen_ai_cost_per_1k_tokens) from your instrumentation
+# and reference it here instead of the raw token counters.
+# ---------------------------------------------------------------------------
+
+groups:
+  - name: mcp-observability-cost
+    interval: 60s
+    rules:
+      - alert: HighCostRate
+        expr: |
+          (
+            sum(rate(gen_ai_usage_input_tokens[5m])) * 0.000003 +
+            sum(rate(gen_ai_usage_output_tokens[5m])) * 0.000015
+          ) > 10
+        for: 5m
+        labels:
+          severity: warning
+          category: cost
+        annotations:
+          summary: "Cost burn rate exceeds $10/hour"
+          description: "Aggregate LLM cost rate has exceeded $10/hour across all models."
+
+      - alert: CostAnomaly
+        expr: |
+          (
+            sum(rate(gen_ai_usage_input_tokens[1h])) * 0.000003 +
+            sum(rate(gen_ai_usage_output_tokens[1h])) * 0.000015
+          )
+          /
+          (
+            sum(rate(gen_ai_usage_input_tokens[1h] offset 24h)) * 0.000003 +
+            sum(rate(gen_ai_usage_output_tokens[1h] offset 24h)) * 0.000015
+          ) > 2
+        for: 15m
+        labels:
+          severity: warning
+          category: cost
+        annotations:
+          summary: "Cost anomaly detected — hourly spend 2x vs same hour yesterday"
+          description: "LLM cost for the current hour is more than 2x the same hour yesterday."
+
+      - alert: DailyCostBudgetExceeded
+        expr: |
+          (
+            sum(increase(gen_ai_usage_input_tokens[24h])) * 0.000003 +
+            sum(increase(gen_ai_usage_output_tokens[24h])) * 0.000015
+          ) > 500
+        for: 5m
+        labels:
+          severity: critical
+          category: cost
+        annotations:
+          summary: "Daily cost budget of $500 exceeded"
+          description: "Total LLM spend over the last 24 hours has exceeded $500."

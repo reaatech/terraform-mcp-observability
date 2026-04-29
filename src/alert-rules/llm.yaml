@@ -1,0 +1,63 @@
+groups:
+  - name: mcp-observability-llm
+    interval: 30s
+    rules:
+      - alert: HighTokenUsage
+        expr: |
+          sum by (gen_ai_request_model) (
+            rate(gen_ai_usage_input_tokens[5m]) + rate(gen_ai_usage_output_tokens[5m])
+          ) > 10000
+        for: 5m
+        labels:
+          severity: warning
+          category: llm
+        annotations:
+          summary: "High token usage for {{ $labels.gen_ai_request_model }}"
+          description: "Model {{ $labels.gen_ai_request_model }} is consuming >10K tokens/sec over 5 minutes."
+
+      - alert: RateLimitEvents
+        expr: |
+          increase(gen_ai_rate_limit_events_total[5m]) > 0
+        for: 1m
+        labels:
+          severity: high
+          category: llm
+        annotations:
+          summary: "Rate limit events detected for {{ $labels.gen_ai_request_model }}"
+          description: "Model {{ $labels.gen_ai_request_model }} has hit provider rate limits in the last 5 minutes."
+
+      - alert: ModelErrorRate
+        expr: |
+          (
+            sum by (gen_ai_request_model) (
+              rate(gen_ai_client_operation_duration_count{gen_ai_operation_name="chat", status="error"}[5m])
+            )
+            /
+            sum by (gen_ai_request_model) (
+              rate(gen_ai_client_operation_duration_count{gen_ai_operation_name="chat"}[5m])
+            )
+          ) > 0.10
+        for: 5m
+        labels:
+          severity: high
+          category: llm
+        annotations:
+          summary: "High model error rate for {{ $labels.gen_ai_request_model }}"
+          description: "Model {{ $labels.gen_ai_request_model }} error rate exceeds 10% for chat operations."
+
+      - alert: TokenCostAnomaly
+        expr: |
+          (
+            sum(rate(gen_ai_usage_input_tokens[5m])) + sum(rate(gen_ai_usage_output_tokens[5m]))
+          )
+          /
+          (
+            sum(rate(gen_ai_usage_input_tokens[1h])) + sum(rate(gen_ai_usage_output_tokens[1h]))
+          ) > 3
+        for: 10m
+        labels:
+          severity: warning
+          category: llm
+        annotations:
+          summary: "Token consumption spike detected"
+          description: "Token consumption has spiked to more than 3x the 1-hour baseline."
