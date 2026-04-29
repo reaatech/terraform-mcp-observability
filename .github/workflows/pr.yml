@@ -84,14 +84,6 @@ jobs:
             skip_region_validation       = true
             skip_requesting_account_id   = true
           }
-          provider "kubernetes" {
-            host                   = "https://127.0.0.1"
-          }
-          provider "helm" {
-            kubernetes {
-              host = "https://127.0.0.1"
-            }
-          }
           EOF
           mkdir -p "$TF_PLUGIN_CACHE_DIR"
           terraform init -backend=false
