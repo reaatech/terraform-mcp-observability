@@ -1,0 +1,25 @@
+pre-commit:
+  parallel: true
+  commands:
+    format:
+      glob: "**/*.{ts,js,json,yaml,yml}"
+      run: pnpm prettier --write {staged_files}
+      stage_fixed: true
+    eslint:
+      glob: "**/*.{ts,js}"
+      run: pnpm eslint --fix {staged_files}
+      stage_fixed: true
+    terraform-fmt:
+      glob: "**/*.tf"
+      run: terraform fmt {staged_files}
+      stage_fixed: true
+
+pre-push:
+  parallel: true
+  commands:
+    typecheck:
+      run: pnpm typecheck
+    test:
+      run: pnpm test
+    terraform-validate:
+      run: pnpm validate

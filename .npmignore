@@ -1,0 +1,41 @@
+# Source files not needed at runtime
+src/
+scripts/
+skills/
+tests/
+examples/
+
+# Terraform files
+*.tf
+*.tfvars
+.terraform/
+.terraform.lock.hcl
+.terraform-docs.yml
+.tflint.hcl
+.terraform-version
+
+# Dev tooling config
+lefthook.yml
+vitest.config.ts
+eslint.config.js
+tsconfig.json
+.editorconfig
+.prettierrc
+
+# CI
+.github/
+
+# Docs (kept in repo, not in npm)
+ARCHITECTURE.md
+DEV_PLAN.md
+AGENTS.md
+CONTRIBUTING.md
+SECURITY.md
+CHANGELOG.md
+CODE_OF_CONDUCT.md
+
+# Misc
+.idea/
+.vscode/
+*.tsbuildinfo
+coverage/

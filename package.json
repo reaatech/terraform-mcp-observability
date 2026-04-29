@@ -1,0 +1,75 @@
+{
+  "name": "terraform-mcp-observability",
+  "version": "1.0.0",
+  "description": "Drop-in Terraform module for complete observability of MCP-based agent systems",
+  "author": "Rick Somers <rick@reaatech.com> (https://reaatech.com)",
+  "private": false,
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/reaatech/terraform-mcp-observability.git"
+  },
+  "homepage": "https://github.com/reaatech/terraform-mcp-observability#readme",
+  "bugs": {
+    "url": "https://github.com/reaatech/terraform-mcp-observability/issues"
+  },
+  "keywords": [
+    "terraform",
+    "observability",
+    "opentelemetry",
+    "mcp",
+    "prometheus",
+    "grafana",
+    "langfuse",
+    "phoenix"
+  ],
+  "license": "MIT",
+  "scripts": {
+    "build": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "eslint . --ext .ts,.js",
+    "lint:fix": "eslint . --ext .ts,.js --fix",
+    "typecheck": "tsc --noEmit",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "validate": "tsx scripts/validate-terraform.ts",
+    "skill:terraform-module": "tsx scripts/skill-runner.ts terraform-module",
+    "skill:terraform-root": "tsx scripts/skill-runner.ts terraform-root",
+    "skill:dashboard-json": "tsx scripts/skill-runner.ts dashboard-json",
+    "skill:alert-rules": "tsx scripts/skill-runner.ts alert-rules",
+    "skill:otel-config": "tsx scripts/skill-runner.ts otel-config",
+    "skill:typescript-module": "tsx scripts/skill-runner.ts typescript-module",
+    "skill:format": "tsx scripts/skill-runner.ts prettier-eslint",
+    "skill:validate": "tsx scripts/skill-runner.ts terraform-validate",
+    "skill:integration-test": "tsx scripts/skill-runner.ts test-integration"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.0.0",
+    "@types/node": "^22.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "@vitest/coverage-v8": "^2.1.9",
+    "eslint": "^9.0.0",
+    "lefthook": "^2.1.6",
+    "prettier": "^3.3.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0",
+    "yaml": "^2.8.3"
+  },
+  "engines": {
+    "node": ">=21.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "packageManager": "pnpm@9.12.0",
+  "files": [
+    "main.tf",
+    "variables.tf",
+    "outputs.tf",
+    "versions.tf",
+    "src/",
+    "README.md",
+    "LICENSE"
+  ]
+}
