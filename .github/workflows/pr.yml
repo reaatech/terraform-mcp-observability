@@ -76,11 +76,23 @@ jobs:
       - name: Root module init + plan (syntax validation only)
         env:
           TF_PLUGIN_CACHE_DIR: ${{ github.workspace }}/.terraform-plugin-cache
-          AWS_REGION: us-east-1
-          AWS_ACCESS_KEY_ID: testing
-          AWS_SECRET_ACCESS_KEY: testing
-          AWS_SESSION_TOKEN: testing
         run: |
+          cat > ci-providers.tf <<'EOF'
+          provider "aws" {
+            region                       = "us-east-1"
+            skip_credentials_validation  = true
+            skip_region_validation       = true
+            skip_requesting_account_id   = true
+          }
+          provider "kubernetes" {
+            host                   = "https://127.0.0.1"
+          }
+          provider "helm" {
+            kubernetes {
+              host = "https://127.0.0.1"
+            }
+          }
+          EOF
           mkdir -p "$TF_PLUGIN_CACHE_DIR"
           terraform init -backend=false
           terraform plan \
