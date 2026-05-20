@@ -45,7 +45,7 @@
     "skill:integration-test": "tsx scripts/skill-runner.ts test-integration"
   },
   "devDependencies": {
-    "@eslint/js": "^9.0.0",
+    "@eslint/js": "^10.0.1",
     "@types/node": "^25.0.0",
     "@typescript-eslint/eslint-plugin": "^8.59.1",
     "@typescript-eslint/parser": "^8.59.4",
